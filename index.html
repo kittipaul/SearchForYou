@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+  <html>
+  	<head>
+  		<title>SearchForYou</title>
+          <!-- link the CSS to the HTML file -->
+          <link rel="stylesheet" type="text/css" href="./styles/style.css">
+          <!-- Using the Soundcloud API -->
+          <script src="https://connect.soundcloud.com/sdk/sdk-3.1.1.js"></script>
+          <!-- Using the Google Map API -->
+          <!-- AIzaSyC7ZYqMan5M93sfe27UAIwpGgHWrwd6tDU    : Google Maps API user key-->
+          <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC7ZYqMan5M93sfe27UAIwpGgHWrwd6tDU&libraries=places" async defer></script>
+
+          <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+          <meta charset="utf-8">
+          
+      </head>
+      
+      <body>
+          <div class="header">
+              <img src="images/logoProject.png" alt="logo">
+              <h1>SearchForYou</h1>
+              <p id="myClock">0000000</p> 
+              <h2 id="countTime"> Time: </h2>
+          </div>
+          <div id="pagelogo">
+              <img for="pagelogo" src="images/pagelogo.png" alt="logo on page">
+          </div>
+          <div id="intro">
+              <p id="l1">Welcome to SFU...</p>
+              <p>Search the Sound for your life</p>
+              <p>Place where you want to go</p>
+              <p id="l2">We are here to help you "SearchForYou"</p>
+          </div>
+
+          <h2 id="myHeading"> SearchForSound </h2>
+          <form>
+              <input id="searchTerm" type="text" placeholder="Search ..."></input>
+              <input id="submitButton" type="submit" value="Go"></input>
+          </form>
+          <div id="notFound">
+              <!-- Show the alert message to the user that result doesn't exist -->
+          </div>
+          <div id="musicPlayerContainer">
+              <!-- iframes to be appended for all later iframe -->
+          </div>
+
+          <h2 id="googleHeading"> SearchForPlace </h2>
+          <form>
+              <input id="userInput" type="text" placeholder="Search ..."></input>
+              <input id="submitMap" type="submit" value="Go"></input>
+          </form>
+          <div id="map"></div>
+
+  <!-- ========================================================================================================== -->
+
+          <script type="text/javascript">
+              // Initialize Soundcloud to the webpage
+              SC.initialize({
+                  // Register API Client on the SoundCloud website
+                  client_id: '6866ed4f111dbaf11fd0d4cc6a8980a5' 
+              });
+              // Create event by 'click' from the 'submitBotton'
+              document.getElementById('submitButton').addEventListener('click', function(event){
+                  // Prevent submit button default behavior
+                  event.preventDefault();
+                  // Get the value from the user input
+                  var searchTermInput = document.getElementById('searchTerm').value;
+                  // Use the search API to get tracks
+                  SC.get('/tracks', {
+                    // Search the tracks by the user input
+                    q: searchTermInput, license: 'cc-by-sa'
+                      // tracks is an array of objects
+                  }).then(function(tracks) {
+                      // Clear all the old child
+                      // ****
+                      emptyNotFound();
+                      // Check if the tracks array has an element or not, if not we'll run the function body
+                      // ****
+                      if(tracks.length === 0) {
+                          // Create the new paragraph <P></P>
+                          var newDiv = document.createElement("P");
+                          // Create the text node to tell the user that "Your result does not exist" 
+                          var showNoFound = document.createTextNode("Your result does not exist");
+                          // Append the new child to the paragraph
+                          newDiv.appendChild(showNoFound);
+                          // Append the new child to the div
+                          document.getElementById("notFound").appendChild(newDiv);
+                      }
+                      // Clear all the old iframe out when re-searcing the new song
+                      emptyMusicPlayerContainer();
+                      // Iterate over the tracks array
+                      for(var i = 0; i < tracks.length; i++) {
+                          // To get the track ID from the track object for using in src of each iframe
+                          var trackId = tracks[i].id; 
+                          // Create the new iframe
+                          var newIframe = document.createElement("iframe");
+                          // Change the iframe with the src by the track ID every iteration
+                          newIframe.src = "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/" + trackId + "&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true";
+                          // Append the new iframe to the div
+                          document.getElementById('musicPlayerContainer').appendChild(newIframe);
+                      }
+                  });
+              });
+              // Helper function, emptyNotFound(), to clear all the notFound children, 
+              // *** you dont need to clear every child, there will only be one child when not found
+              function emptyNotFound() {
+                  // Get the element from the notFound div
+                  var notFound = document.getElementById("notFound");
+                  // While we see the first child then we run the function body 
+                  while(notFound.firstChild) {
+                      // Remove all the first child
+                      notFound.removeChild(notFound.firstChild);
+                  }
+              }
+              // Helper function, emptyMusicPlayerContainer(), to clear all the children 
+              function emptyMusicPlayerContainer(){
+                  // Get the element from the emptyMusicPlayerContainer
+                  var musicPlayerContainer = document.getElementById('musicPlayerContainer');
+                  // While we see the first child then we run the function body 
+                  while(musicPlayerContainer.firstChild) {
+                      // Remove all the first Child
+                      musicPlayerContainer.removeChild(musicPlayerContainer.firstChild);
+                  }
+              }
+          </script>
+
+
+  <!-- ========================================================================================================== -->
+          <script type="text/javascript">
+              // Listen to submitMap click event
+              document.getElementById("submitMap").addEventListener("click", function(event) {
+                  // Prevent submit button default behavior
+                  event.preventDefault();
+                  // Get the value from the user input
+                  var searchInput = document.getElementById("userInput").value;
+                  // empty the input field
+                  document.getElementById("userInput").value = "";
+                  // if iframe with id "userMap" already exist
+                  if(document.getElementById("userMap")) {
+                      // edit the src
+                      document.getElementById("userMap").src = "https://www.google.com/maps/embed/v1/place?q=" + searchInput + "&zoom=10&key=AIzaSyBa05ElUjELQK3hAAvKV-2c9bHA4z1sXag";
+                  } else {
+                      // iframe with id "userMap" doesn't exist
+                      // need to create a new iframe
+                      var newIframe = document.createElement("iframe");
+                      // Assign the id to the new iframe as userMap
+                      newIframe.id = "userMap";
+                      // Create the map from the source by user input 
+                      newIframe.src = "https://www.google.com/maps/embed/v1/place?q=" + searchInput + "&zoom=10&key=AIzaSyBa05ElUjELQK3hAAvKV-2c9bHA4z1sXag";
+                      // Append the iframe child
+                      document.getElementById("map").appendChild(newIframe);
+                  }
+              });
+          </script>
+
+
+  <!-- ========================================================================================================== -->
+
+          <script type="text/javascript">
+              // Add event listener to execute callback function when the page is loaded
+              window.addEventListener("load", function(event) {
+                  // Create the clock object
+                  var clock = {
+                    // totalSeconds will be the counter
+                    totalSeconds : 0,
+                    // Create getSeconds method that return second from 0 to 59
+                    getSeconds : function(){
+                      // Variable second will come from the totalSeconds mod by 60
+                      var second = this.totalSeconds % 60;
+                      // if the second less than 10 we will put "0" before the second
+                      if(second <= 9){
+                        // Concat the "0" with the second
+                        return "0" + second;
+                      }
+                      // Otherwise we will return the second
+                      return second;
+                    },
+                    // Create getMinutes method that return the minutes
+                    getMinutes : function (){
+                      // Get the minute and then return with the same method as getSeconds
+                      var minute = (Math.floor(this.totalSeconds / 60)) % 60;
+                      if(minute <= 9){
+                        return "0" + minute;
+                      }
+                      return minute;
+                    },
+                    // Create getHours method 
+                    getHours : function (){
+                      var hour = (Math.floor(this.totalSeconds / 3600)) % 3600;
+                      if(hour <= 9){
+                        return "0" + hour;
+                      }
+                      return hour;
+                    },
+                    // Create printTime method that return all the methods that we made above
+                    printTime : function(){
+                      return (clock.getHours() + ":" + this.getMinutes() + ":" + this.getSeconds());
+                    },
+                    // Create intervalTime method to increment the clock every 1 second
+                    intervalTime : function() {
+                      // Set interval for the clock
+                      setInterval(function(){
+                        // Increment the totalSecond by 1
+                        this.totalSeconds++;
+
+                        // *** youre not doing anything with this printTime return value
+                        // Call the method printTime
+                        this.printTime();
+                        // Change the text content to the printTime method
+                        document.getElementById("myClock").textContent = clock.printTime();  
+                        // Bind the clock object to the intervalTime method
+                      }.bind(clock), 1000);
+                    }
+                  };
+                  // Call the intervalTime method 
+                  clock.intervalTime();
+              })
+          </script>
+      
+      </body>
+  </html>
+
+<!--
+
+A few expectation:
+- I'm using the SoundCloud and Google APIs in this project
+- Also manipulate the API with the higher order function
+- Using native JavaScript methods
+- All checked the stlye guidelines
+- Making a user searching information website not a game
+- Not using jQuery
+- All the syntax and all the codes running properly
+
+
+
+Lessons Learned:
+- I've learned the new knowledge from the HTML and CSS to make my website
+- Using the JavaScript event handler for user interaction in web interface
+- Learning how to make a good style and documentation, also making sure that all the syntax
+  won't make an error and all the code working without any issue.
+- Feeling more comfortable to using the higher order function
+
+ -->
